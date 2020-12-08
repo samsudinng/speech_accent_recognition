@@ -1,5 +1,5 @@
 {
-    "name": "Accent_AlexNetGAP",
+    "name": "Accent_AlexNetGAP_Mixup",
     "n_gpu": 1,
 
     "arch": {
@@ -65,5 +65,10 @@
         "early_stop": 5,
 
         "tensorboard": true
+    },
+    "trainer_enhance": {
+        "mixup": true,
+        "mixup_alpha": 0.4
     }
+    
 }

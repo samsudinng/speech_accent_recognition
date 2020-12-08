@@ -3,7 +3,7 @@ import torch
 from torchvision.utils import make_grid
 from base import BaseTrainer
 from utils import inf_loop, MetricTracker
-
+from utils.mixup import mixup_data, mixup_criterion
 
 class Trainer(BaseTrainer):
     """
@@ -34,6 +34,13 @@ class Trainer(BaseTrainer):
         self.train_metrics = MetricTracker('loss', *[m.__name__ for m in self.train_metric_ftns], writer=self.writer)
         self.valid_metrics = MetricTracker('loss', *[m.__name__ for m in self.val_metric_ftns], writer=self.writer)
         
+        #training-related config
+        cfg_enhance = self.config['trainer_enhance']
+        
+        self.mixup = cfg_enhance['mixup']
+        if self.mixup == True:
+            self.mixup_alpha = cfg_enhance['mixup_alpha']        
+                
     def _train_epoch(self, epoch):
         """
         Training logic for an epoch
@@ -47,8 +54,22 @@ class Trainer(BaseTrainer):
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
-            output = self.model(data)
-            loss = self.criterion(output, target)
+            
+            # Mixup
+            if self.mixup == True:
+                inputs, targets_a, targets_b, lam = mixup_data(data, target,  
+                                    alpha= self.mixup_alpha, use_cuda=torch.cuda.is_available())                
+                # Forward pass
+                output = self.model(inputs)
+
+                # Loss
+                loss_func = mixup_criterion(targets_a, targets_b, lam)
+                loss = loss_func(self.criterion, output)
+            
+            else:
+                output = self.model(data)
+                loss = self.criterion(output, target)
+            
             loss.backward()
             self.optimizer.step()
 
@@ -67,9 +88,6 @@ class Trainer(BaseTrainer):
             if batch_idx == self.len_epoch:
                 break
             
-            #to delete
-            #if batch_idx == 0:
-            #    break
         #log = self.train_metrics.result()
         log = self.valid_metrics.result()
         if self.do_validation:
