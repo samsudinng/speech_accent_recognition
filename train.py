@@ -23,7 +23,7 @@ def main(config):
 
     # setup data_loader instances
     data_loader = config.init_obj('data_loader', module_data)
-    valid_data_loader = data_loader.split_validation()
+    valid_data_loader = config.init_obj('val_data_loader', module_data)
 
     # build model architecture, then print to console
     model = config.init_obj('arch', module_arch)
@@ -37,8 +37,9 @@ def main(config):
 
     # get function handles of loss and metrics
     criterion = getattr(module_loss, config['loss'])
-    metrics = [getattr(module_metric, met) for met in config['metrics']]
-
+    train_metrics = [getattr(module_metric, met) for met in config['train_metrics']]
+    val_metrics = [getattr(module_metric, met) for met in config['val_metrics']]
+    metrics = (train_metrics, val_metrics)
     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
