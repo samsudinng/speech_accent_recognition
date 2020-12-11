@@ -1,9 +1,9 @@
 {
-    "name": "Accent_AlexNetGAP_Mixup",
+    "name": "Accent_AlexNetFtn_SGD_Augment_OneOf",
     "n_gpu": 1,
 
     "arch": {
-        "type": "AlexNetGAP",
+        "type": "AlexNetFinetuning",
         "args": {
             "num_classes": 8,
             "in_ch": 3,
@@ -17,7 +17,8 @@
             "batch_size": 64,
             "shuffle": true,
             "validation_split": 0.0,
-            "num_workers": 4
+            "num_workers": 4,
+            "p_augment": 0.6
         }
     },
     "val_data_loader": {
@@ -33,9 +34,11 @@
     },
 
     "optimizer": {
-        "type": "AdamW",
+        "type": "SGD",
         "args":{
-            "lr": 0.0005
+            "lr": 1e-2,
+            "momentum": 0.9,
+            "weight_decay":5e-4
         }
     },
     "loss": "ce_loss",
@@ -46,10 +49,11 @@
         "utt_accuracy"
     ],
     "lr_scheduler": {
-        "type": "StepLR",
+        "type": "ReduceLROnPlateau",
         "args": {
-            "step_size": 50,
-            "gamma": 0.1
+            "mode": "max",
+            "patience": 2,
+            "verbose": true
         }
     },
     "trainer": {
@@ -67,8 +71,8 @@
         "tensorboard": true
     },
     "trainer_enhance": {
-        "mixup": true,
-        "mixup_alpha": 0.4
+        "mixup": false
+    
     }
     
 }
