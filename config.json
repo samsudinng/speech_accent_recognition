@@ -1,9 +1,9 @@
 {
-    "name": "Accent_AlexNetFtn_SGD_Augment_OneOf",
+    "name": "Accent_AlexNetGAP_SGD_SpecAugment",
     "n_gpu": 1,
 
     "arch": {
-        "type": "AlexNetFinetuning",
+        "type": "AlexNetGAP",
         "args": {
             "num_classes": 8,
             "in_ch": 3,
@@ -52,14 +52,13 @@
         "type": "ReduceLROnPlateau",
         "args": {
             "mode": "max",
-            "patience": 2,
+            "patience": 1,
             "verbose": true
         }
     },
     "trainer": {
         "epochs": 50,
 
-        "mixup": true,
 
         "save_dir": "saved/",
         "save_period": 1,

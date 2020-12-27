@@ -6,6 +6,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from typing import Any, Tuple
 import numpy as np
+from torchaudio import transforms as audiotransforms
 
 
 class ImageFolderAlbumentations(ImageFolder):
@@ -38,6 +39,20 @@ class AccentDataLoader(BaseDataLoader):
     def __init__(self, train_img_path, batch_size, shuffle=True, validation_split=0.0, num_workers=1, p_augment=0.0, training=True):
         
         
+
+        alexnet_transforms = transforms.Compose([
+                                        transforms.Resize(256),
+                                         transforms.ToTensor(), 
+                                        transforms.RandomChoice([
+                                            transforms.RandomApply([audiotransforms.FrequencyMasking(freq_mask_param=50)], p=p_augment),
+                                            transforms.RandomApply([audiotransforms.TimeMasking(time_mask_param=100)], p=p_augment)
+                                                                 ]),
+                                         transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                             std=[0.229, 0.224, 0.225])
+
+                                        ])
+        
+        """
         alexnet_transforms = A.Compose([
                                          A.Resize(256,256,always_apply=True),
                                          A.OneOf([
@@ -49,7 +64,7 @@ class AccentDataLoader(BaseDataLoader):
                                                              std=[0.229, 0.224, 0.225],always_apply=True),
                                          ToTensorV2(always_apply=True)
                                         ]) 
-        """
+       
         alexnet_transforms = transforms.Compose([
                                          transforms.Resize(256),
                                          transforms.ToTensor(),
@@ -61,7 +76,8 @@ class AccentDataLoader(BaseDataLoader):
         """
 
         self.train_img_path = train_img_path
-        self.dataset = ImageFolderAlbumentations(root=self.train_img_path, transform=alexnet_transforms)
+        #self.dataset = ImageFolderAlbumentations(root=self.train_img_path, transform=alexnet_transforms)
+        self.dataset = ImageFolder(root=self.train_img_path, transform=alexnet_transforms)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
 
 

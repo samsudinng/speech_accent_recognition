@@ -3,7 +3,7 @@ import torch
 from torchvision.utils import make_grid
 from base import BaseTrainer
 from utils import inf_loop, MetricTracker
-from utils.mixup import mixup_data, mixup_criterion
+from utils.augmentation import mixup_data, mixup_criterion
 
 class Trainer(BaseTrainer):
     """
