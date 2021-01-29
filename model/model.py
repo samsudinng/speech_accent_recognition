@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torchvision
+from model.vggm import VGGM
 
 
 def init_layer(layer):
@@ -79,3 +80,29 @@ class AlexNetGAP(nn.Module):
         out = self.classifier(x).squeeze(-1).squeeze(-1)
 
         return out
+
+
+class VGGMAccent(nn.Module):
+
+    def __init__(self, n_classes = 8, pretrained_path = None):
+        super(VGGMAccent, self).__init__()
+        
+        #initialize network
+        model = VGGM()
+
+        #initialize with pretrained weight
+        if pretrained_path is not None:
+            torch.load(pretrained_path)
+            print(f"\nPre-trained weight loaded from {pretrained_path}\n")
+        
+        #initialize the last linear layer to n_classes
+        model.classifier[2] = nn.Linear(1024, n_classes)
+
+        self.features = model.features
+        self.classifier = model.classifier
+
+    def forward(self, inp):
+        inp = inp[:,0,:,:].unsqueeze(1)
+        inp=self.features(inp)
+        inp=self.classifier(inp)
+        return inp            
