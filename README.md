@@ -68,7 +68,7 @@ __Process__:
 #### 1.2.2 VGGVox magnitude-spectrogram features (512-dim)
 
 Adapted from:
-https://github.com/samsudinng/VGGVox-PyTorch/blob/master/train.py
+https://github.com/Derpimort/VGGVox-PyTorch
 
 The author converted the Matlab original implementation to Python (and verified). The pre-trained weights was trained on VoxCeleb1 dataset for speaker identification/verification.
 
