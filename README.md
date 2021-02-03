@@ -94,6 +94,15 @@ __Process__ :
 
 ## 2. Training/Validation
 
+### 2.1 Features to image
+
+For classification with __AlexNet__, the extracted features is converted into `.png` images and stored in folder `train_img\x\` and `dev_img\x\` where `x` is the label ranging from `0` to `7`. This is folloowing the folder structure to use `ImageFolder` dataset from `PyTorch`. 
+
+To perform this step, run `python create_kaldi_img.py` or `python create_logspec_img.py` accordingly.
+
+
+### 2.2 Model Training and Validation
+
 To train the model, try `python train.py -c config.json`. The training/validation cofiguration can be set in `config.json`. For details on folder structure of the
 code and format of the configuration file, refer to [PyTorch Template Project readme file.](https://github.com/samsudinng/pytorch-template/blob/master/README.md)
 
