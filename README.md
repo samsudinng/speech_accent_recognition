@@ -69,7 +69,7 @@ audio/
 ``` 
 
 
-### 1.2.2 VGGVox magnitude-spectrogram features (512-dim)
+### 1.2 VGGVox magnitude-spectrogram features (512-dim)
 
 Adapted from:
 https://github.com/Derpimort/VGGVox-PyTorch
@@ -109,7 +109,7 @@ __Output__ : Segmented spectrograms, converted into `.png` images. The images ar
 The jobs are submitted to slurm workload manager. Hence, the script has been written to use SBATCH to submit the jobs. Modify accordingly, otherwise. 
 
 
-## Kaldi-based features (83-dim fbank + pitch)
+### 2.2 Kaldi-based features (83-dim fbank + pitch)
 
 To extract image from Kaldi feature matrix, simply update the variables in the script `create_kaldi_img.py` and run the script. The variables are:
 
