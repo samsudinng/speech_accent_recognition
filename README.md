@@ -1,29 +1,60 @@
 # Speech Accent Classification with Image Classifier
 Accent classification from speech spectral images with image classifier
 
+## 0. Overview
 
-## 1. Features Image Extraction
+In this method, speech accent classification task  is formulated as image classification task.
+
+__Dataset__
+
+Accented English Speech Recognition Challenge 2020  (IS20)
+
+__Input image__
+
+- `logspec200': Spectrogram of utterances, converted into 8-bit RGB image (.png)
+- `kaldi83' : Kaldi features (fbank+pitch, converted into 8-bit RGB image (.png)) *\*to be updated*
+
+__Image classification model__
+
+- AlexNetGAP
+
+__Performance Metric__
+
+- Training  :  `accuracy` (overall accuracy, segmental level)
+- Dev/Test  :  `utt_accuracy` (overal accuracy on utterance level, i.e. posterior probabilities from all segments of the utterance)
+
+__How to run/reproduce results?__
+
+Follow these steps, details on following sections.
+
+1. Extract features from .wav files
+2. Convert features to .png images
+3. Train/dev epochs
+4. Evaluate on test set
 
 
-### 1.1 Kaldi features (83-dim fbank + pitch)
-To extract image from Kaldi feature matrix, simply update the variables in the script `create_kaldi_img.py` and run the script. The variables are:
+## 1. Extract features from .wav
 
-|Variables|Meaning|
-|---------|---------|
-|`segment_size`|the dimension of non-overlapping kaldi feature image segment (time direction). Image size = (83 x segment_size) pixels|
-|`train_path`, `dev_path`| path to the folder containing train/dev .ark and .scp files|
-|`train_label_file`, `dev_label_file`| path to train/dev utt2accent file|
-|`n_train_feats_files`, `n_train_feats_files`| number of train/dev .scp file segments|
-|`train_dir`, `dev_dir`|directory to save the resulting train/dev images| 
-|`old_train_path`, `old_dev_path`|the original path to .ark files as pointed in.scp, to be replaced with current train_path and dev_path|
- 
-The feature images will be save to the directory pointed by `train_dir` and `dev_dir`. In either directory, the images will be saved into subdirectory which 
-corresponds to the label eg. if a training feature image has a label '0' it will be saved in `train_dir\0\` folder. This is following the image path organization 
-for PyTorch ImageFolder dataset, which is used in this project.
+### 1.1 `logspec200` features (200-dim spectrogram)
 
-### 1.2 Spectrogram features
-The features are exctracted from the utterance .wav files from AESRC dataset. The extraction script is provided as Jupyter notebook at the moment, found in the folder `features_extraction\`. The utterance .wav files should be located in folder `audio` and features written to folder `features`. Modify the path as needed, or you can create a symbolic link to these folders (check the notebooks). Two features are available at the moment: log-spectrogram (200_dim, 10ms frames) and magnitude spectrogram (512-dim, 10ms frames based on VGGVox features, see following section).
+__Notebook__: __features_extraction/Logspec_Features_from_Audio.jpynb__
 
+__Input__: utterances .wav files, test\dev\train set listed in `metadata\*_utt2label`
+
+__Output__: spectrograms in .pkl.gz files (train set splitted into 8 chunks due to large size), data type: uint8 (formatted as gray image pixel)
+
+Run the notebook `Logspec_Features_from_Audio.ipynb`. The spectrograms are saved as .pkl.gz located in the folder `features`.
+
+For detailed steps, check the notebook. The required folders are organized as follows: 
+
+|Folder|Content|Action|
+|:---|:---|:---|
+|__./audio__|train and dev sets .wav files (see below for folder structure)|
+|__./testaudio__|test set .wav files|
+|__./metadata__ (provided in repo)|various metadata: `utt`, `label`, `sex`, `age`, utt to file paths for test set|
+|__./features__| the extracted features (\*.pkl.gz)|
+
+The folder structure for the train and dev dataset is as follows:
 ```
 audio/  
    +---CHN/
@@ -36,33 +67,6 @@ audio/
    +--- .
    +---US
 ``` 
-
-#### 1.2.1 Log-spectrogram features (200-dim)
-
-__Notebook__: __Logspec_Features_from_Audio.jpynb__
-
-__Input__: utterances .wav files, test set listed in `features_extraction\train\utt2label` and `features_extraction\dev\utt2label`
-
-__Output__: spectrograms in .pkl.gz files (splitted into 8 chunks due to large size), data type: uint8 (formatted as gray image pixel)
-
-__Process__:
-
-1. Calculate zscore scaler 
-
-    - calculate and save StandardScaler based on the whole training set to perform spectrogram standardization to zero mean and unit standar deviation
-    - can also be loaded from .pkl file if pre-computed
-
-2. Audio to Spectrogram Image
-
-    - pre-emphasis filtering
-    - convert to spectrogram
-    - zscore standardization
-    - normalization to [0.0, 1.0] range
-    - quantize to uint8 ([0, 255])
-    - save all quantized features as dictionary (```all_spec```)
-        - key  : utterance name (eg. ```AESRC2020-AMERICAN-ACCENT-G00473-G00473S1028```)
-        - value: numpy array (uint8), shape = (F, T)
-   - write to .pkl.gz
 
 
 #### 1.2.2 VGGVox magnitude-spectrogram features (512-dim)
@@ -96,10 +100,28 @@ __Process__ :
 
 ### 2.1 Features to image
 
+#### 2.1.1 Using `logspec200` (spectrogram-based features)
+
 For classification with __AlexNet__, the extracted features is converted into `.png` images and stored in folder `train_img\x\` and `dev_img\x\` where `x` is the label ranging from `0` to `7`. This is folloowing the folder structure to use `ImageFolder` dataset from `PyTorch`. 
 
 To perform this step, run `python create_kaldi_img.py` or `python create_logspec_img.py` accordingly.
 
+#### 2.1.2 Using Kaldi-based features (83-dim fbank + pitch)
+
+To extract image from Kaldi feature matrix, simply update the variables in the script `create_kaldi_img.py` and run the script. The variables are:
+
+|Variables|Meaning|
+|---------|---------|
+|`segment_size`|the dimension of non-overlapping kaldi feature image segment (time direction). Image size = (83 x segment_size) pixels|
+|`train_path`, `dev_path`| path to the folder containing train/dev .ark and .scp files|
+|`train_label_file`, `dev_label_file`| path to train/dev utt2accent file|
+|`n_train_feats_files`, `n_train_feats_files`| number of train/dev .scp file segments|
+|`train_dir`, `dev_dir`|directory to save the resulting train/dev images| 
+|`old_train_path`, `old_dev_path`|the original path to .ark files as pointed in.scp, to be replaced with current train_path and dev_path|
+ 
+The feature images will be save to the directory pointed by `train_dir` and `dev_dir`. In either directory, the images will be saved into subdirectory which 
+corresponds to the label eg. if a training feature image has a label '0' it will be saved in `train_dir\0\` folder. This is following the image path organization 
+for PyTorch ImageFolder dataset, which is used in this project.
 
 ### 2.2 Model Training and Validation
 
