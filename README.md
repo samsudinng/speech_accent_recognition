@@ -69,7 +69,7 @@ audio/
 ``` 
 
 
-#### 1.2.2 VGGVox magnitude-spectrogram features (512-dim)
+### 1.2.2 VGGVox magnitude-spectrogram features (512-dim)
 
 Adapted from:
 https://github.com/Derpimort/VGGVox-PyTorch
@@ -96,17 +96,20 @@ __Process__ :
    - write to .pkl.gz
 
 
-## 2. Training/Validation
+## 2. Convert features to .png image
 
-### 2.1 Features to image
+### 2.1 `logspec200`-based features
 
-#### 2.1.1 Using `logspec200` (spectrogram-based features)
+__Script__ : `features_extraction/create_logspec200_img.sh`
 
-For classification with __AlexNet__, the extracted features is converted into `.png` images and stored in folder `train_img\x\` and `dev_img\x\` where `x` is the label ranging from `0` to `7`. This is folloowing the folder structure to use `ImageFolder` dataset from `PyTorch`. 
+__Input__. : .pkl.gz feature files created from Step 1.
 
-To perform this step, run `python create_kaldi_img.py` or `python create_logspec_img.py` accordingly.
+__Output__ : Segmented spectrograms, converted into `.png` images. The images are stored in folder `train_img\x\`, `dev_img\x\` and `test_img\x` where `x` is the label ranging from `0` to `7`. This is following the folder structure specified by `torchvision.datasets.ImageFolder`. 
 
-#### 2.1.2 Using Kaldi-based features (83-dim fbank + pitch)
+The jobs are submitted to slurm workload manager. Hence, the script has been written to use SBATCH to submit the jobs. Modify accordingly, otherwise. 
+
+
+## Kaldi-based features (83-dim fbank + pitch)
 
 To extract image from Kaldi feature matrix, simply update the variables in the script `create_kaldi_img.py` and run the script. The variables are:
 
@@ -121,9 +124,13 @@ To extract image from Kaldi feature matrix, simply update the variables in the s
  
 The feature images will be save to the directory pointed by `train_dir` and `dev_dir`. In either directory, the images will be saved into subdirectory which 
 corresponds to the label eg. if a training feature image has a label '0' it will be saved in `train_dir\0\` folder. This is following the image path organization 
-for PyTorch ImageFolder dataset, which is used in this project.
+for `torchvision.datasets.ImageFolder` dataset, which is used in this project.
 
-### 2.2 Model Training and Validation
+
+
+## 3. Training/Validation
+
+### 3.1 Model Training and Validation
 
 To train the model, try `python train.py -c config.json`. The training/validation cofiguration can be set in `config.json`. For details on folder structure of the
 code and format of the configuration file, refer to [PyTorch Template Project readme file.](https://github.com/samsudinng/pytorch-template/blob/master/README.md)
