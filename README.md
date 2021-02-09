@@ -37,7 +37,7 @@ Follow these steps, details on following sections.
 
 ### 1.1 `logspec200` features (200-dim spectrogram)
 
-__Notebook__: __Logspec_Features_from_Audio.jpynb__
+__Notebook__: __features_extraction/Logspec_Features_from_Audio.jpynb__
 
 __Input__: utterances .wav files, test\dev\train set listed in `metadata\*_utt2label`
 
