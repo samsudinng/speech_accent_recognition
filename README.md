@@ -128,7 +128,7 @@ for `torchvision.datasets.ImageFolder` dataset, which is used in this project.
 
 
 
-## 3. Training/Validation
+## 3. Training/Validation/TEST
 
 ### 3.1 Model Training and Validation
 
@@ -144,3 +144,7 @@ to mixup augmentation parameter `alpha`.
 - To enable __test-time augmentation__, under configuration setting `data_loader`, set `"p_aug": p` where p is probability of applying the image transformation (either one of time or frequency masking).
 
 - To use __label smoothing loss function__, under configuration setting `loss` set `ce_labelsmoothing_loss`
+
+### 3.2 Model Test
+
+To test the model, run `python test.py -r saved\models\path_to\timestamp\model_best.pth` where `path_to\timestamp` is the folder created automatically during training based on the session name specified in config.jason. 
