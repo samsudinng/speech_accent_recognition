@@ -43,7 +43,7 @@ __Input__: utterances .wav files, test\dev\train set listed in `metadata\*_utt2l
 
 __Output__: spectrograms in .pkl.gz files (train set splitted into 8 chunks due to large size), data type: uint8 (formatted as gray image pixel)
 
-Run the notebook `__features_extraction\Logspec_Features_from_Audio.ipynb__`. The spectrograms are saved as .pkl.gz located in the folder `features`.
+Run the notebook `Logspec_Features_from_Audio.ipynb`. The spectrograms are saved as .pkl.gz located in the folder `features`.
 
 For detailed steps, check the notebook. The required folders are organized as follows: 
 
