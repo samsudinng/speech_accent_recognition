@@ -44,7 +44,7 @@ Note: A shell script `create_logspec200_img.sh` is provided to automate this usi
    - Set the required configuration in `config.json`. Config files for the experiments are provided in the directory `config_files/`
    - create folder to contain the log files and checkpoints: `saved_dir\log\` and `saved_dir\models\`. `saved_dir\` should be named according to the folder name as specified in the variable "saved_dir" in the config file.
    - run `python train.py -c config.json`
-   - Results can be monitored in Tensorboard
+   - Results can be monitored in Tensorboard with option `--logdir saved_dir\`
 
 4. Evaluate on test set: (details in Section 3.2)
    - run `python test.py -r saved\models\path_to\timestamp\model_best.pth` where `path_to\timestamp` is the folder created automatically during training based on the session name specified in config.jason. 
