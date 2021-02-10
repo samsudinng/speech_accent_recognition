@@ -42,7 +42,7 @@ Note: A shell script `create_logspec200_img.sh` is provided to automate this usi
 
 3. Train/dev epochs: (details in Section 3.1)
    - Set the required configuration in `config.json`. Config files for the experiments are provided in the directory `config_files/`
-   - create folder to contain the log files and checkpoints: `saved\log\` and `saved\models\`
+   - create folder to contain the log files and checkpoints: `saved_dir\log\` and `saved_dir\models\`. `saved_dir\` should be named according to the folder name as specified in the variable "saved_dir" in the config file.
    - run `python train.py -c config.json`
    - Results can be monitored in Tensorboard
 
