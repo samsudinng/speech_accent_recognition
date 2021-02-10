@@ -25,12 +25,28 @@ __Performance Metric__
 
 __How to run/reproduce results?__
 
-Follow these steps, details on following sections.
+For `logspec200` features, follow these steps: 
 
-1. Extract features from .wav files
-2. Convert features to .png images
-3. Train/dev epochs
-4. Evaluate on test set
+1. Extract features from .wav files: (details in Section 1.1)
+   - run __features_extraction/Logspec_Features_from_Audio.jpynb__ 
+
+2. Convert features to .png images: (details in Section 2.1)
+   - go to folder `features_extraction\'
+   - create folder to contain the images: `train_img\x\`, `dev_img\x\`, `test_img\x\` with `x` from 0 to 7 (as per the accent labels)
+   - create test and dev images: `python create_logspec_img.py`
+   - create test images: `python create_logspec_test_img.py`
+
+Note: A shell script `create_logspec200_img.sh` is provided to automate this using SLURM workload manager. It assumes a conda environment called `accent` has been activated. Change the environment name accordingly.
+
+3. Train/dev epochs: (details in Section 3.1)
+   - Set the required configuration in `config.json`
+   - create folder to contain the log files and checkpoints: `saved\log\` and `saved\models\`
+   - run `python train.py -c config.json`
+   - Results can be monitored in Tensorboard
+
+4. Evaluate on test set: (details in Section 3.2)
+   - run `python test.py -r saved\models\path_to\timestamp\model_best.pth` where `path_to\timestamp` is the folder created automatically during training based on the session name specified in config.jason. 
+
 
 
 ## 1. Extract features from .wav
