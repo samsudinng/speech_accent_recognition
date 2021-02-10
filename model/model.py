@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision
 from model.vggm import VGGM
-
+from facenet_pytorch import InceptionResnetV1
 
 def init_layer(layer):
     """Initialize a Linear or Convolutional layer. """
@@ -80,6 +80,99 @@ class AlexNetGAP(nn.Module):
         out = self.classifier(x).squeeze(-1).squeeze(-1)
 
         return out
+
+
+class VGG16GAP(nn.Module):
+
+    def __init__(self,num_classes=8, in_ch=3, pretrained=True):
+        super(VGG16GAP, self).__init__()
+
+        model = torchvision.models.vgg16(pretrained=pretrained)
+        self.features = model.features
+        self.avgpool  = model.avgpool
+
+        #Global average pooling layer
+        self.classifier = nn.Sequential(
+                                        nn.Conv2d(512, num_classes, kernel_size=(1,1)),
+                                        nn.AvgPool2d(7)
+                                        )
+        init_layer(self.classifier[0])
+
+
+        if in_ch != 3:
+            self.features[0] = nn.Conv2d(in_ch, 64, kernel_size=3, padding=1)
+            init_layer(self.features[0])
+
+        print('\n<< VGG16GAP model initialized >>\n')
+
+    def forward(self, x):
+
+        x = self.features(x)
+        x = self.avgpool(x)
+        out = self.classifier(x).squeeze(-1).squeeze(-1)
+
+        return out
+
+class VGG16BnGAP(nn.Module):
+
+    def __init__(self,num_classes=8, in_ch=3, pretrained=True):
+        super(VGG16BnGAP, self).__init__()
+
+        model = torchvision.models.vgg16_bn(pretrained=pretrained)
+        self.features = model.features
+        self.avgpool  = model.avgpool
+
+        #Global average pooling layer
+        self.classifier = nn.Sequential(
+                                        nn.Conv2d(512, num_classes, kernel_size=(1,1)),
+                                        nn.AvgPool2d(7)
+                                        )
+        init_layer(self.classifier[0])
+
+
+        if in_ch != 3:
+            self.features[0] = nn.Conv2d(in_ch, 64, kernel_size=3, padding=1)
+            init_layer(self.features[0])
+
+        print('\n<< VGG16BnGAP model initialized >>\n')
+
+    def forward(self, x):
+
+        x = self.features(x)
+        x = self.avgpool(x)
+        out = self.classifier(x).squeeze(-1).squeeze(-1)
+
+        return out
+
+
+class Resnet50GAP(nn.Module):
+
+    def __init__(self,num_classes=8, in_ch=3, pretrained=True):
+        super(Resnet50GAP, self).__init__()
+
+        model = torchvision.models.resnet50(pretrained=pretrained)
+        #self.features = model.features
+        #self.avgpool  = model.avgpool
+
+        #Global average pooling layer
+        #self.classifier = nn.Sequential(
+        #model.avgpool = nn.Conv2d(2048, num_classes, kernel_size=(1,1))
+        #model.fc = nn.AvgPool2d(1)
+        #                                )
+        model.fc=nn.Linear(in_features=2048, out_features=num_classes, bias=True)
+        init_layer(model.fc)
+
+        self.model= model
+        print('\n<< Resnet50GAP model initialized >>\n')
+
+    def forward(self, x):
+
+        #x = self.features(x)
+        #x = self.avgpool(x)
+        out = self.model(x)#.squeeze(-1).squeeze(-1)
+
+        return out
+
 
 
 class VGGMAccent(nn.Module):

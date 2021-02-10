@@ -7,7 +7,7 @@ from albumentations.pytorch import ToTensorV2
 from typing import Any, Tuple
 import numpy as np
 from torchaudio import transforms as audiotransforms
-
+from facenet_pytorch import fixed_image_standardization
 
 class ImageFolderAlbumentations(ImageFolder):
     def __init__(self, root='', transform=None):
@@ -125,6 +125,45 @@ class AccentValDataLoader(DataLoader):
         
         super().__init__(self.dataset, batch_size=batch_size, shuffle=shuffle, num_workers = num_workers)
 """
+
+
+
+class AccentInceptionResnetV1TrainDataLoader(BaseDataLoader):
+
+    def __init__(self, train_img_path, batch_size, shuffle=True, validation_split=0.0, num_workers=1, p_augment=0.0, training=True):
+
+
+
+        resnet50_transforms =transforms.Compose([
+                                        transforms.Resize((160,160)),
+                                        transforms.ToTensor(),
+                                        transforms.RandomChoice([
+                                            transforms.RandomApply([audiotransforms.FrequencyMasking(freq_mask_param=50)], p=p_augment),
+                                            transforms.RandomApply([audiotransforms.TimeMasking(time_mask_param=100)], p=p_augment)
+                                                                 ]),
+                                        fixed_image_standardization
+                            ])
+
+        self.train_img_path = train_img_path
+        self.dataset = ImageFolder(root=self.train_img_path, transform=resnet50_transforms)
+        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+
+    
+class AccentInceptionResnetV1DataLoader(BaseDataLoader):
+
+    def __init__(self, img_path, batch_size, shuffle=False, num_workers=1,validation_split=0.0):
+
+
+        resnet50_transforms =transforms.Compose([
+                                        transforms.Resize((160,160)),
+                                        transforms.ToTensor(),
+                                        fixed_image_standardization
+                            ])
+
+
+        self.img_path = img_path
+        self.dataset = ImageFolder(root=self.img_path, transform=resnet50_transforms)
+        super().__init__(self.dataset, batch_size, shuffle,validation_split, num_workers)
 
 
 

@@ -1,0 +1,76 @@
+{
+    "name": "tuning1_AdamW64_m5",
+    "n_gpu": 1,
+
+    "arch": {
+        "type": "AlexNetGAP",
+        "args": {
+            "num_classes": 8
+        }
+    },
+    "data_loader": {
+        "type": "AccentTrainDataLoader",
+        "args":{
+            "train_img_path": "features_extraction/train_img/",
+            "batch_size": 64,
+            "shuffle": true,
+            "validation_split": 0.0,
+            "num_workers": 4,
+            "p_augment": 0.6
+        }
+    },
+    "val_data_loader": {
+        "type": "AccentDataLoader",
+        "args":{
+            "img_path": "features_extraction/dev_img/",
+            "batch_size": 128,
+            "shuffle": false,
+            "num_workers": 4
+        }
+    },
+    "test_data_loader": {
+    "type": "AccentDataLoader",
+        "args": {
+            "img_path": "features_extraction/test_img/"
+        }
+    },
+                                            
+    "optimizer": {
+        "type": "AdamW",
+        "args":{
+            "lr": 1e-5        }
+    },
+    "loss": "ce_loss",
+    "train_metrics": [
+        "accuracy"
+    ],
+    "val_metrics": [
+        "utt_accuracy"
+    ],
+    "lr_scheduler": {
+        "type": "ReduceLROnPlateau",
+        "args": {
+            "mode": "max",
+            "patience": 100,
+            "verbose": true
+        }
+    },
+
+    "trainer": {
+        "epochs": 20,
+
+
+        "save_dir": "saved_tuning1/",
+        "save_period": 1,
+        "verbosity": 1,
+        
+        "monitor": "max utt_accuracy",
+
+        "tensorboard": true
+    },
+    "trainer_enhance": {
+        "mixup": false
+    
+    }
+    
+}

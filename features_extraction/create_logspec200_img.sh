@@ -29,7 +29,7 @@ if [ "$CREATE_TRAIN_IMG" = true ]; then
         mkdir dev_img/$i; 
     done
 
-    cp ../experiments/sbatch_template.sh create_img.sh
+    cp ../sbatch_template.sh create_img.sh
     echo "#SBATCH --job-name=logspec200_img"  >> create_img.sh
     echo "#SBATCH --output=out_logspec200_img.out"  >> create_img.sh
     echo "#SBATCH --error=err_logspec200_img.err"  >> create_img.sh
@@ -51,7 +51,7 @@ if [ "$CREATE_TEST_IMG" = true ]; then
         mkdir test_img/$i;
     done
 
-    cp ../experiments/sbatch_template.sh create_img.sh
+    cp ../sbatch_template.sh create_img.sh
     echo "#SBATCH --job-name=logspec200_testimg"  >> create_img.sh
     echo "#SBATCH --output=out_logspec200_testimg.out"  >> create_img.sh
     echo "#SBATCH --error=err_logspec200_testimg.err"  >> create_img.sh

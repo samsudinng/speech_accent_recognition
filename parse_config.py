@@ -66,6 +66,7 @@ class ConfigParser:
             msg_no_cfg = "Configuration file need to be specified. Add '-c config.json', for example."
             assert args.config is not None, msg_no_cfg
             resume = None
+            bestmodel = None
             cfg_fname = Path(args.config)
         
         config = read_json(cfg_fname)
