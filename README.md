@@ -39,7 +39,7 @@ For `logspec200` features, follow these steps:
 Note: A shell script `create_logspec200_img.sh` is provided to automate this using SLURM workload manager. It assumes a conda environment called `accent` has been activated. Change the environment name accordingly.
 
 3. Train/dev epochs: (details in Section 3.1)
-   - Set the required configuration in `config.json`
+   - Set the required configuration in `config.json`. Config files for the experiments are provided in the directory `config_files/`
    - create folder to contain the log files and checkpoints: `saved\log\` and `saved\models\`
    - run `python train.py -c config.json`
    - Results can be monitored in Tensorboard
