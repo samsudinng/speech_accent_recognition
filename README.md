@@ -47,7 +47,7 @@ Note: A shell script `create_logspec200_img.sh` is provided to automate this usi
    - Results can be monitored in Tensorboard with option `--logdir saved_dir/`, or read from the file `info.log` inside `saved_dir/log/config_name/timestamp/`
 
 4. Evaluate on test set: (details in Section 3.2)
-   - run `python test.py -r saved/models/path_to/timestamp/model_best.pth` where `path_to/timestamp` is the folder created automatically during training based on the session name specified in config.jason. 
+   - run `python test.py -r saved_dir/models/config_name/timestamp/model_best.pth` where `path_to/timestamp` is the folder created automatically during training based on the session name specified in config.jason. 
 
 
 
