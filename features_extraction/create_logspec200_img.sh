@@ -13,20 +13,20 @@ TESTDIR="test_img"
 if [ "$CREATE_TRAIN_IMG" = true ]; then
     if [ -d train_img ]; then
         echo "resetting train_img/"
-        rm -r train_img
+        rm -rfv train_img
     fi
     mkdir train_img
-    for i in {0..7}; do 
-        mkdir train_img/$i; 
+    for i in {0..7}; do
+        mkdir train_img/$i;
     done
 
     if [ -d dev_img ]; then
         echo "resetting dev_img/"
-        rm -r dev_img
+        rm -rfv dev_img
     fi
     mkdir dev_img
-    for i in {0..7}; do 
-        mkdir dev_img/$i; 
+    for i in {0..7}; do
+        mkdir dev_img/$i;
     done
 
     cp ../sbatch_template.sh create_img.sh
@@ -44,7 +44,7 @@ if [ "$CREATE_TEST_IMG" = true ]; then
 
     if [ -d test_img ]; then
         echo "resetting test_img/"
-        rm -r test_img
+        rm -rfv test_img
     fi
     mkdir test_img
     for i in {0..7}; do
