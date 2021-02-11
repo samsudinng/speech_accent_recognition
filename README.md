@@ -27,25 +27,27 @@ __How to run/reproduce results?__
 
 For `logspec200` features, follow these steps: 
 
+0. Replicate conda environment with `conda env create -f environment.yml`
+
 1. Extract features from .wav files: (details in Section 1.1)
    - run __features_extraction/Logspec_Features_from_Audio.jpynb__ 
 
 2. Convert features to .png images: (details in Section 2.1)
-   - go to folder `features_extraction\'
-   - create folder to contain the images: `train_img\x\`, `dev_img\x\`, `test_img\x\` with `x` from 0 to 7 (as per the accent labels)
+   - go to folder `features_extraction/'
+   - create folder to contain the images: `train_img/x/`, `dev_img/x/`, `test_img/x/` with `x` from 0 to 7 (as per the accent labels)
    - create test and dev images: `python create_logspec_img.py`
    - create test images: `python create_logspec_test_img.py`
 
 Note: A shell script `create_logspec200_img.sh` is provided to automate this using SLURM workload manager. It assumes a conda environment called `accent` has been activated. Change the environment name accordingly.
 
 3. Train/dev epochs: (details in Section 3.1)
-   - Set the required configuration in `config.json`
-   - create folder to contain the log files and checkpoints: `saved\log\` and `saved\models\`
+   - Set the required configuration in `config.json`. Config files for the experiments are provided in the directory `config_files/`
+   - create folder to contain the log files and checkpoints: `saved_dir/log/` and `saved_dir/models/`. `saved_dir/` should be named according to the folder name as specified in the variable "saved_dir" in the config file.
    - run `python train.py -c config.json`
-   - Results can be monitored in Tensorboard
+   - Results can be monitored in Tensorboard with option `--logdir saved_dir/`, or read from the file `info.log` inside `saved_dir/log/config_name/timestamp/`
 
 4. Evaluate on test set: (details in Section 3.2)
-   - run `python test.py -r saved\models\path_to\timestamp\model_best.pth` where `path_to\timestamp` is the folder created automatically during training based on the session name specified in config.jason. 
+   - run `python test.py -r saved_dir/models/config_name/timestamp/model_best.pth` where `path_to/timestamp` is the folder created automatically during training based on the session name specified in config.jason. 
 
 
 
@@ -55,7 +57,7 @@ Note: A shell script `create_logspec200_img.sh` is provided to automate this usi
 
 __Notebook__: __features_extraction/Logspec_Features_from_Audio.jpynb__
 
-__Input__: utterances .wav files, test\dev\train set listed in `metadata\*_utt2label`
+__Input__: utterances .wav files, test\dev\train set listed in `metadata/*_utt2label`
 
 __Output__: spectrograms in .pkl.gz files (train set splitted into 8 chunks due to large size), data type: uint8 (formatted as gray image pixel)
 
