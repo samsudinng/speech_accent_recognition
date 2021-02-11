@@ -15,8 +15,13 @@ __Input image__
 - `kaldi83' : Kaldi features (fbank+pitch, converted into 8-bit RGB image (.png)) *\*to be updated*
 
 __Image classification model__
-
-- AlexNetGAP
+The available and tested models are listed below. 
+|Model|Description|Source|
+|:---|:---|:---|
+|AlexNetGAP|AlexNet features layer + global average pooling classifier|torchvision.models.alexnet|
+|VGG16GAP|VGG16 features layer + global average pooling classifier|torchvision.models.vgg16|
+|VGG16BnGAP|VGG16+Batchnorm + global average pooling classifier|torchvision.models.vgg16bn|
+|Resnet50| |torchvision.models.resnet50|
 
 __Performance Metric__
 
