@@ -27,7 +27,7 @@ __How to run/reproduce results?__
 
 For `logspec200` features, follow these steps: 
 
-0. Replicate conda environment with `conda env create -f environment.yml`
+0. Replicate conda environment with `conda env create -f environment.yml`. This will create an environment called `accent`. To activate the environment, type `conda activate accent`.
 
 1. Extract features from .wav files: (details in Section 1.1)
    - run __features_extraction/Logspec_Features_from_Audio.jpynb__ 
