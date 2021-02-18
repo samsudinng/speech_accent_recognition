@@ -73,10 +73,18 @@ class ConfigParser:
         if args.config and resume:
             # update new config for fine-tuning
             config.update(read_json(args.config))
-
+        
+        if args.logdir:
+            config['trainer']['save_dir']=args.logdir
+        
+        if args.id:
+            run_id = args.id
+        else:
+            run_id=None
+            
         # parse custom cli options into dictionary
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
-        return cls(config, resume, modification)
+        return cls(config, resume, modification,run_id=run_id)
 
     def init_obj(self, name, module, *args, **kwargs):
         """
