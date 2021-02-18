@@ -1,4 +1,5 @@
 import argparse
+import collections
 import torch
 from tqdm import tqdm
 import data_loader.data_loaders as module_data
@@ -87,7 +88,15 @@ if __name__ == '__main__':
                       help='path to latest checkpoint (default: None)')
     args.add_argument('-d', '--device', default=None, type=str,
                       help='indices of GPUs to enable (default: all)')
-
-    config = ConfigParser.from_args(args)
+    args.add_argument('-l', '--logdir', default=None, type=str,
+                          help='path to save models and tensorboard logfiles')
+    args.add_argument('-i', '--id', default=None, type=str,
+                              help='run id')
+                              
+    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
+    options = [
+            CustomArgs(['--tstdir'], type=str, target='test_data_loader;args;img_path')
+              ]
+    config = ConfigParser.from_args(args,options)
     main(config)
 

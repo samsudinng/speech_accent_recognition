@@ -11,7 +11,7 @@
     "data_loader": {
         "type": "AccentTrainDataLoader",
         "args":{
-            "train_img_path": "../train_img/",
+            "train_img_path": "features_extraction/train_img/",
             "batch_size": 64,
             "shuffle": true,
             "validation_split": 0.0,
@@ -22,10 +22,16 @@
     "val_data_loader": {
         "type": "AccentDataLoader",
         "args":{
-            "img_path": "../dev_img/",
+            "img_path": "features_extraction/dev_img/",
             "batch_size": 128,
             "shuffle": false,
             "num_workers": 4
+        }
+    },
+    "test_data_loader": {
+        "type": "AccentDataLoader",
+        "args":{
+            "img_path": "features_extraction/test_img/"
         }
     },
 
@@ -53,10 +59,10 @@
         }
     },
     "trainer": {
-        "epochs": 50,
+        "epochs": 10,
 
 
-        "save_dir": "saved/",
+        "save_dir": "savedtest/",
         "save_period": 1,
         "verbosity": 2,
         
