@@ -145,33 +145,70 @@ class VGG16BnGAP(nn.Module):
         return out
 
 
-class Resnet50GAP(nn.Module):
+class Resnet50Accent(nn.Module):
 
     def __init__(self,num_classes=8, in_ch=3, pretrained=True):
-        super(Resnet50GAP, self).__init__()
+        super(Resnet50Accent, self).__init__()
 
         model = torchvision.models.resnet50(pretrained=pretrained)
-        #self.features = model.features
-        #self.avgpool  = model.avgpool
-
-        #Global average pooling layer
-        #self.classifier = nn.Sequential(
-        #model.avgpool = nn.Conv2d(2048, num_classes, kernel_size=(1,1))
-        #model.fc = nn.AvgPool2d(1)
-        #                                )
         model.fc=nn.Linear(in_features=2048, out_features=num_classes, bias=True)
         init_layer(model.fc)
 
         self.model= model
-        print('\n<< Resnet50GAP model initialized >>\n')
+        print('\n<< Resnet50Accent model initialized >>\n')
 
     def forward(self, x):
 
-        #x = self.features(x)
-        #x = self.avgpool(x)
-        out = self.model(x)#.squeeze(-1).squeeze(-1)
+        return self.model(x)
 
-        return out
+class Resnet34Accent(nn.Module):
+
+    def __init__(self,num_classes=8, in_ch=3, pretrained=True):
+        super(Resnet34Accent, self).__init__()
+            
+        model = torchvision.models.resnet34(pretrained=pretrained)
+        model.fc=nn.Linear(in_features=512, out_features=num_classes, bias=True)
+        init_layer(model.fc)
+                                    
+        self.model= model
+        print('\n<< Resnet34Accent model initialized >>\n')
+                                                    
+    def forward(self, x):
+                                                        
+        return self.model(x)
+
+
+class Resnet101Accent(nn.Module):
+
+    def __init__(self,num_classes=8, in_ch=3, pretrained=True):
+        super(Resnet101Accent, self).__init__()
+
+        model = torchvision.models.resnet101(pretrained=pretrained)
+        model.fc=nn.Linear(in_features=2048, out_features=num_classes, bias=True)
+        init_layer(model.fc)
+
+        self.model= model
+        print('\n<< Resnet101Accent model initialized >>\n')
+
+    def forward(self, x):
+
+        return self.model(x)
+
+class Resnet152Accent(nn.Module):
+
+    def __init__(self,num_classes=8, in_ch=3, pretrained=True):
+        super(Resnet152Accent, self).__init__()
+
+        model = torchvision.models.resnet152(pretrained=pretrained)
+        model.fc=nn.Linear(in_features=2048, out_features=num_classes, bias=True)
+        init_layer(model.fc)
+
+        self.model= model
+        print('\n<< Resnet152Accent model initialized >>\n')
+
+    def forward(self, x):
+
+        return self.model(x)
 
 
 
