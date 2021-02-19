@@ -1,5 +1,5 @@
 {
-    "name": "tuning1_AdamW64_m5",
+    "name": "AdamW196_m5",
     "n_gpu": 1,
 
     "arch": {
@@ -12,7 +12,7 @@
         "type": "AccentTrainDataLoader",
         "args":{
             "train_img_path": "features_extraction/train_img/",
-            "batch_size": 64,
+            "batch_size": 196,
             "shuffle": true,
             "validation_split": 0.0,
             "num_workers": 4,
@@ -29,7 +29,7 @@
         }
     },
     "test_data_loader": {
-    "type": "AccentDataLoader",
+        "type": "AccentDataLoader",
         "args": {
             "img_path": "features_extraction/test_img/"
         }

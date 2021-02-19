@@ -1,9 +1,9 @@
 {
-    "name": "tuning1_AdamW256_m5",
+    "name": "Resnet34_AdamW32_m5",
     "n_gpu": 1,
 
     "arch": {
-        "type": "AlexNetGAP",
+        "type": "Resnet34Accent",
         "args": {
             "num_classes": 8
         }
@@ -12,7 +12,7 @@
         "type": "AccentTrainDataLoader",
         "args":{
             "train_img_path": "features_extraction/train_img/",
-            "batch_size": 256,
+            "batch_size": 32,
             "shuffle": true,
             "validation_split": 0.0,
             "num_workers": 4,
@@ -23,18 +23,18 @@
         "type": "AccentDataLoader",
         "args":{
             "img_path": "features_extraction/dev_img/",
-            "batch_size": 128,
+            "batch_size": 32,
             "shuffle": false,
             "num_workers": 4
         }
     },
     "test_data_loader": {
         "type": "AccentDataLoader",
-        "args": {
+        "args":{
             "img_path": "features_extraction/test_img/"
-            }
+        }
     },
-                                            
+
     "optimizer": {
         "type": "AdamW",
         "args":{
@@ -47,6 +47,7 @@
     "val_metrics": [
         "utt_accuracy"
     ],
+
     "lr_scheduler": {
         "type": "ReduceLROnPlateau",
         "args": {
@@ -55,12 +56,11 @@
             "verbose": true
         }
     },
-
     "trainer": {
         "epochs": 20,
 
 
-        "save_dir": "saved_tuning1/",
+        "save_dir": "saved_pretrained_models/",
         "save_period": 1,
         "verbosity": 1,
         
