@@ -3,171 +3,120 @@ Accent classification from speech spectral images with image classifier
 
 ## 0. Overview
 
-In this method, speech accent classification task  is formulated as image classification task.
+In this method, speech accent classification task  is formulated as image classification task. For details on folder structure of the
+repository and format of the configuration file, refer to [PyTorch Template Project readme file.](https://github.com/samsudinng/pytorch-template/blob/master/README.md)
 
-__Dataset__
+__DATASET__
+| | |
+|:-|:-|
+|__Source__ |Accented English Speech Recognition Challenge 2020  (Interspeech 2020)<br/>https://www.datatang.ai/INTERSPEECH2020 |
+|__Audio__ | .wav (16 kHz, mono) |
+|__Labels__|8 accented English utterances<br/>(Russia, Korea, US, Portugal, Japan, India, UK, China) |
+|__Speakers__ |40 - 110 speakers per accent|
+|__# Utterances__| Train set: 124k<br/>Dev set  : 12k<br/>Test set : 14.5k|
 
-Accented English Speech Recognition Challenge 2020  (IS20)
 
-__Input image__
+__FEATURES__
 
-- `logspec200': Spectrogram of utterances, converted into 8-bit RGB image (.png)
-- `kaldi83' : Kaldi features (fbank+pitch, converted into 8-bit RGB image (.png)) *\*to be updated*
+__`logspec200`__: Spectrogram of utterances, standardized (z-score based on train set), normalized (range: {0 ... 1}), quantized (8-bit, uint8)
 
-__Image classification model__
+
+__MODELS__
+
 The available and tested models are listed below. 
+
 |Model|Description|Source|
 |:---|:---|:---|
-|AlexNetGAP|AlexNet features layer + global average pooling classifier|torchvision.models.alexnet|
-|VGG16GAP|VGG16 features layer + global average pooling classifier|torchvision.models.vgg16|
-|VGG16BnGAP|VGG16+Batchnorm + global average pooling classifier|torchvision.models.vgg16bn|
-|Resnet50| |torchvision.models.resnet50|
+|`AlexNetGAP`|AlexNet features layer + global average pooling classifier|torchvision.models.alexnet|
+|`VGG16GAP`|VGG16 features layer + global average pooling classifier|torchvision.models.vgg16|
+|`VGG16BnGAP`|VGG16+Batchnorm + global average pooling classifier|torchvision.models.vgg16bn|
+|`Resnet34`| |torchvision.models.resnet34|
+|`Resnet50`| |torchvision.models.resnet50|
+|`Resnet101`| |torchvision.models.resnet101|
+|`Resnet152`| |torchvision.models.resnet152|
 
-__Performance Metric__
+__PERFORMANCE METRIC__
 
-- Training  :  `accuracy` (overall accuracy, segmental level)
-- Dev/Test  :  `utt_accuracy` (overal accuracy on utterance level, i.e. posterior probabilities from all segments of the utterance)
+- Training  :  __`accuracy`__ (overall accuracy, segmental level)
+- Dev/Test  :  __`utt_accuracy`__ (overal accuracy on utterance level, i.e. posterior probabilities from all segments of the utterance)
 
-__How to run/reproduce results?__
+__HOW TO RUN?__
 
-For `logspec200` features, follow these steps: 
+0. Install `conda` environment/package manager
+This project uses `conda` to manage environment replication. Download and install from [here](https://docs.conda.io/en/latest/). 
 
-0. Replicate conda environment with `conda env create -f environment.yml`. This will create an environment called `accent`. To activate the environment, type `conda activate accent`.
+1. Create new environment called `your_env_name` (or any other name) and replicate project environment
 
-1. Extract features from .wav files: (details in Section 1.1)
-   - run __features_extraction/Logspec_Features_from_Audio.jpynb__ 
+```
+conda create --name your_env_name python=3.7
+conda activate your_env_name
+pip install -r requirements.txt
+```
 
-2. Convert features to .png images: (details in Section 2.1)
-   - go to folder `features_extraction/'
-   - create folder to contain the images: `train_img/x/`, `dev_img/x/`, `test_img/x/` with `x` from 0 to 7 (as per the accent labels)
-   - create test and dev images: `python create_logspec_img.py`
-   - create test images: `python create_logspec_test_img.py`
+2. Extract features
 
-Note: A shell script `create_logspec200_img.sh` is provided to automate this using SLURM workload manager. It assumes a conda environment called `accent` has been activated. Change the environment name accordingly.
+```
+source features_extraction/create_logspec_imgs.sh
+```
 
-3. Train/dev epochs: (details in Section 3.1)
-   - Set the required configuration in `config.json`. Config files for the experiments are provided in the directory `config_files/`
-   - create folder to contain the log files and checkpoints: `saved_dir/log/` and `saved_dir/models/`. `saved_dir/` should be named according to the folder name as specified in the variable "saved_dir" in the config file.
-   - run `python train.py -c config.json`
-   - Results can be monitored in Tensorboard with option `--logdir saved_dir/`, or read from the file `info.log` inside `saved_dir/log/config_name/timestamp/`
+This script performs two tasks:
+- convert .wav utterances (train, dev, test) into log-spectrogram features (\*.pkl.gz) - see [Section 1](#1-extract-features-from-wav) for details.
+- read the features, segment and convert into .png images for model training and testing. The images are organized into folder corresponding to the label (according to `torchvision.datasets.ImageFolder` specification) - see [Section 2](#2-convert-features-to-png-image) for details.
 
-4. Evaluate on test set: (details in Section 3.2)
-   - run `python test.py -r saved_dir/models/config_name/timestamp/model_best.pth` where `path_to/timestamp` is the folder created automatically during training based on the session name specified in config.jason. 
+In  the above`create_logspec_imgs.sh` script, set the following environment paths (absolute path or relative to the folder `features_extraction/`):
+
+|Variable|Remarks|Default|
+|:---|:---|:---|
+|`TRAINWAVPATH`|path to .wav of train and dev set (see below for directory structure)|`audio/`|
+|`TESTWAVPATH`|path to .wav of test |`testaudio/`|
+|`FPATH`|path to save the feature files|`features/`|
+|`TRAINIMGPATH`|path to save the trainset images (.png) for model training|`train_img/`|
+|`DEVIMGPATH`|path to save the devset images (.png) for model validation|`dev_img/`|
+|`TESTIMGPATH`|path to save the test images (.png) for model testing|`test_img/`|
+
+```diff
+- Note: `TRAINIMGPATH`, `DEVIMGPATH` and `TESTIMGPATH` must not be the same directory -
+```
+
+3. Training/Validation
+
+`python train.py -c path/to/config_filename.json --trndir path/to/trainset_images/ --devdir path/to/devset_images/ --logdir path/to/logfiles`
+
+To resume training from specific epoch (eg.epoch number 6):
+
+`python train.py -r path/to/checkpoint-epoch6.pth`
+
+The required arguments are:
+
+|Arguments|Remarks|Default|
+|:---|:---|:--- |
+|`--trndir`, `--devdir`|path to the trainset and devset images (`TRAINIMGPATH` and `DEVIMGPATH` in previous step)| `train_img`, `dev_img` set in .json config file|
+|`--logdir`|path to logfiles. In this directory, two subdirectories will be created: (1) `log/config_filename/timestamp/` containing tensorboard log files and metric printout (`info.log`); (2) `models/config_filename/timestamp/` containing checkpoints (`checkpoint-epoch<n>.pth`) and best model (`model_best.pth`) and a copy of the config file (`config.json`)| `saved/` set in .json config file|
+
+```diff
+- Config files to replicate various experiments are provided in the directory `config_files/` -
+```
+
+By default, Tensorboard logging is enabled. Results can be monitored in Tensorboard with option `--logdir path/to/logfiles`, or read from the file `info.log`.
+
+
+4. Test
+
+`python test.py -r path/to/model_best.pth`
+
+Results can be read from the file `info.log`
 
 
 
 ## 1. Extract features from .wav
 
-### 1.1 `logspec200` features (200-dim spectrogram)
-
-__Notebook__: __features_extraction/Logspec_Features_from_Audio.jpynb__
-
-__Input__: utterances .wav files, test\dev\train set listed in `metadata/*_utt2label`
-
-__Output__: spectrograms in .pkl.gz files (train set splitted into 8 chunks due to large size), data type: uint8 (formatted as gray image pixel)
-
-Run the notebook `Logspec_Features_from_Audio.ipynb`. The spectrograms are saved as .pkl.gz located in the folder `features`.
-
-For detailed steps, check the notebook. The required folders are organized as follows: 
-
-|Folder|Content|Action|
-|:---|:---|:---|
-|__./audio__|train and dev sets .wav files (see below for folder structure)|
-|__./testaudio__|test set .wav files|
-|__./metadata__ (provided in repo)|various metadata: `utt`, `label`, `sex`, `age`, utt to file paths for test set|
-|__./features__| the extracted features (\*.pkl.gz)|
-
-The folder structure for the train and dev dataset is as follows:
-```
-audio/  
-   +---CHN/
-   |     +----G0021/
-   |             |------G00021S1053.wav
-   |             |------   .
-   |             |------   .
-   +---IND
-   +--- .
-   +--- .
-   +---US
-``` 
-
-
-### 1.2 VGGVox magnitude-spectrogram features (512-dim)
-
-Adapted from:
-https://github.com/Derpimort/VGGVox-PyTorch
-
-The author converted the Matlab original implementation to Python (and verified). The pre-trained weights was trained on VoxCeleb1 dataset for speaker identification/verification.
-
-VGGVox features is magnitude spectrogram (512x300) with type `np.float32`. The frequency bins (512) is full mirrored spectrum (256+256) from 512-point FFT. Only the first 257 points are saved (spec\[:257,:\]) and the full features can be built by mirroring spec\[1:256,:\] and concatenating to the saved features.
-
-__Notebook__: __VGGVox_Features_from_Audio.jpynb__
-
-__Input__   : utterances .wav files, test set listed in `features_extraction\train\utt2label` and `features_extraction\dev\utt2label`
-
-__Output__  : spectrograms in .pkl.gz files (splitted into 16 chunks due to large size), data type: float32 (raw spectrograms)
-
-__Process__ :
-
-   - dc removal and dithering
-   - pre-emphasis filtering
-   - convert to spectrogram
-   - zscore standardization (per utterance)
-   - save all quantized features as dictionary (```all_spec```)
-      - key  : utterance name (eg. ```AESRC2020-AMERICAN-ACCENT-G00473-G00473S1028```)
-      - value: numpy array (`np.float32`), shape = (F, T) where F = 257 and should be mirrored to 512 as VGGVox feature
-   - write to .pkl.gz
-
-
 ## 2. Convert features to .png image
 
-### 2.1 `logspec200`-based features
+## 3. Training/Validation
 
-__Script__ : `features_extraction/create_logspec200_img.sh`
+### 3.1 Configuration file
 
-__Input__. : .pkl.gz feature files created from Step 1.
+### 3.2 Model Training and Validation
 
-__Output__ : Segmented spectrograms, converted into `.png` images. The images are stored in folder `train_img\x\`, `dev_img\x\` and `test_img\x` where `x` is the label ranging from `0` to `7`. This is following the folder structure specified by `torchvision.datasets.ImageFolder`. 
+## 4. Test
 
-The jobs are submitted to slurm workload manager. Hence, the script has been written to use SBATCH to submit the jobs. Modify accordingly, otherwise. 
-
-
-### 2.2 Kaldi-based features (83-dim fbank + pitch)
-
-To extract image from Kaldi feature matrix, simply update the variables in the script `create_kaldi_img.py` and run the script. The variables are:
-
-|Variables|Meaning|
-|---------|---------|
-|`segment_size`|the dimension of non-overlapping kaldi feature image segment (time direction). Image size = (83 x segment_size) pixels|
-|`train_path`, `dev_path`| path to the folder containing train/dev .ark and .scp files|
-|`train_label_file`, `dev_label_file`| path to train/dev utt2accent file|
-|`n_train_feats_files`, `n_train_feats_files`| number of train/dev .scp file segments|
-|`train_dir`, `dev_dir`|directory to save the resulting train/dev images| 
-|`old_train_path`, `old_dev_path`|the original path to .ark files as pointed in.scp, to be replaced with current train_path and dev_path|
- 
-The feature images will be save to the directory pointed by `train_dir` and `dev_dir`. In either directory, the images will be saved into subdirectory which 
-corresponds to the label eg. if a training feature image has a label '0' it will be saved in `train_dir\0\` folder. This is following the image path organization 
-for `torchvision.datasets.ImageFolder` dataset, which is used in this project.
-
-
-
-## 3. Training/Validation/TEST
-
-### 3.1 Model Training and Validation
-
-To train the model, try `python train.py -c config.json`. The training/validation cofiguration can be set in `config.json`. For details on folder structure of the
-code and format of the configuration file, refer to [PyTorch Template Project readme file.](https://github.com/samsudinng/pytorch-template/blob/master/README.md)
-
-Additional configuration has been added for mixup and test-time data augmentation implementation. The following can be enabled/disabled by setting some parameters
-in `config.json`
-
-- To enable __mixup augmentation__, under configuration setting `trainer_enhance`, set `"mixup": true` and `"mixup_alpha": n` where `n` in between 0 and 1, corresponding
-to mixup augmentation parameter `alpha`.
-
-- To enable __test-time augmentation__, under configuration setting `data_loader`, set `"p_aug": p` where p is probability of applying the image transformation (either one of time or frequency masking).
-
-- To use __label smoothing loss function__, under configuration setting `loss` set `ce_labelsmoothing_loss`
-
-### 3.2 Model Test
-
-To test the model, run `python test.py -r saved\models\path_to\timestamp\model_best.pth` where `path_to\timestamp` is the folder created automatically during training based on the session name specified in config.jason. 
