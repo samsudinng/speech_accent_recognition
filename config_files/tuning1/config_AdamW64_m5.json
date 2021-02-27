@@ -29,7 +29,7 @@
         }
     },
     "test_data_loader": {
-    "type": "AccentDataLoader",
+        "type": "AccentDataLoader",
         "args": {
             "img_path": "features_extraction/test_img/"
         }

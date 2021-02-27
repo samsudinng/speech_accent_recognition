@@ -32,7 +32,7 @@
         "type": "AccentDataLoader",
         "args": {
             "img_path": "features_extraction/test_img/"
-            }
+        }
     },
                                             
     "optimizer": {

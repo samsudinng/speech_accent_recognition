@@ -1,5 +1,5 @@
 {
-    "name": "Resnet50_AdamW32_m5",
+    "name": "Resnet50_AdamW32_m5var",
     "n_gpu": 1,
 
     "arch": {
@@ -38,7 +38,8 @@
     "optimizer": {
         "type": "AdamW",
         "args":{
-            "lr": 1e-5        }
+            "lr": 1e-5
+                    }
     },
     "loss": "ce_loss",
     "train_metrics": [
@@ -52,15 +53,15 @@
         "type": "ReduceLROnPlateau",
         "args": {
             "mode": "max",
-            "patience": 100,
+            "patience": 3,
             "verbose": true
         }
     },
     "trainer": {
-        "epochs": 20,
+        "epochs": 10,
 
 
-        "save_dir": "saved_default/",
+        "save_dir": "saved_pretrained_models/",
         "save_period": 1,
         "verbosity": 1,
         

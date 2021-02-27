@@ -9,6 +9,7 @@ import gc
 import argparse
 import sys
 import warnings
+import os
 
 #############################
 # CONSTANTS AND LOOKUP TABLES 
@@ -164,7 +165,7 @@ def calculate_zscore_scaler(train_labels,spec_params):
     return zscore_scaler, corrupted_files
 
 
-def extract_feature_image(df, spec_params, zscore_scaler, data_range):
+def extract_feature_image(df, spec_params, zscore_scaler, data_range,to_delete):
     
     all_spec={}
     minmax_scaler = MinMaxScaler(feature_range=(0,1))
@@ -202,8 +203,13 @@ def extract_feature_image(df, spec_params, zscore_scaler, data_range):
         minmax_scaler.fit(log_spec)
         log_spec = minmax_scaler.transform(log_spec)
         log_spec = (log_spec*255).astype(np.uint8)
-    
+        
+        #Append to spectrogram dictionary
         all_spec[utt] = np.flipud(log_spec.T)
+        
+        #Delete wav files
+        if to_delete == 1:
+            os.remove(wavfilename)
 
     return all_spec, data_range, corrupted_files
 
@@ -213,10 +219,13 @@ def main(args):
 
     #PATHS
     spec_params = spectrogram_params[args.feature]
-    wavdir = args.trainpath
-    testwavdir= args.testpath
-    outdir = args.fpath
-    metapath = args.metapath
+    wavdir      = args.trainpath
+    testwavdir  = args.testpath
+    outdir      = args.fpath
+    metapath    = args.metapath
+    to_delete   = args.delete
+    xtract_train= args.xtrain
+    xtract_test = args.xtest
 
     #METADATA
     train_metadata = {
@@ -251,134 +260,143 @@ def main(args):
     train_df = get_wavfile_paths(train_labels, wavdir)
     dev_df   = get_wavfile_paths(dev_labels, wavdir)
     test_df  = get_wavfile_paths_from_scp(test_labels, test_wav_scp, testwavdir)
-
+    
+    
     # Calculate zscore scaling from training dataset
-    if args.zscore == 'None':
-        print('Calculating zscore scaler from training data')
-        zscore_scaler,corrupted_files = calculate_zscore_scaler(train_df,spec_params)
-        print(f'Corrupted files: {len(corrupted_files)}\n{corrupted_files}\n')
-        with open(f'{outdir}zscore_scaler_{args.feature}.pkl','wb') as fi:
-            pickle.dump(zscore_scaler, fi)
-    else:
+    if xtract_train == 1:
+        if args.zscore == 'None':
+            print('Calculating zscore scaler from training data')
+            zscore_scaler,corrupted_files = calculate_zscore_scaler(train_df,spec_params)
+            print(f'Corrupted files: {len(corrupted_files)}\n{corrupted_files}\n')
+            with open(f'{outdir}zscore_scaler_{args.feature}.pkl','wb') as fi:
+                pickle.dump(zscore_scaler, fi)
+        else:
+            with open(args.zscore,'rb') as fi:
+                zscore_scaler = pickle.load(fi)
+    elif xtract_test == 1:
+        assert args.zscore != 'None'    
         with open(args.zscore,'rb') as fi:
             zscore_scaler = pickle.load(fi)
     
     # ==========================================================================
     # Extract features from train set
     # ==========================================================================
-     
-    print('Extracting features from training data')
-    data_range = defaultdict(list)
-
-    # split the training data into chuncks (due to huge memory size)
-    nsplit = n_train_split 
-    split_size = int(np.floor(len(train_df)/nsplit))
-    split_start = [split_size*idx for idx in list(range(0,nsplit,1))]
-    split_end = [split_size*idx for idx in list(range(1,nsplit,1))]
-    split_end.append(len(train_df))
-    split_idx = zip(split_start, split_end)
-
-    corrupted_files=[]
-    for chunk, idx in enumerate(split_idx):
-        start,end = idx
-        print(f'Chunk {chunk+1}/{nsplit}\n')
-        all_spec, data_range,corrupted = extract_feature_image(train_df.iloc[start:end,:], spec_params, zscore_scaler, data_range)
-        corrupted_files.extend(corrupted)
-        pickle.dump( all_spec, gzip.open( f'{outdir}train_{args.feature}_{chunk}.pkl.gz',   'wb' ) )
     
-        del all_spec
+    if xtract_train == 1:
+        print('Extracting features from training data')
+        data_range = defaultdict(list)
+
+        # split the training data into chuncks (due to huge memory size)
+        nsplit = n_train_split 
+        split_size = int(np.floor(len(train_df)/nsplit))
+        split_start = [split_size*idx for idx in list(range(0,nsplit,1))]
+        split_end = [split_size*idx for idx in list(range(1,nsplit,1))]
+        split_end.append(len(train_df))
+        split_idx = zip(split_start, split_end)
+
+        corrupted_files=[]
+        for chunk, idx in enumerate(split_idx):
+            start,end = idx
+            print(f'Chunk {chunk+1}/{nsplit}\n')
+            all_spec, data_range,corrupted = extract_feature_image(train_df.iloc[start:end,:], spec_params, zscore_scaler, data_range, to_delete)
+            corrupted_files.extend(corrupted)
+            pickle.dump( all_spec, gzip.open( f'{outdir}train_{args.feature}_{chunk}.pkl.gz',   'wb' ) )
+    
+            del all_spec
+            gc.collect()
+
+        gmin = min(data_range['min_ori'])
+        gmax = max(data_range['max_ori'])
+        print(f'Data range original    : min: {gmin} - max: {gmax}')
+    
+        gmin = min(data_range['min_std'])
+        gmax = max(data_range['max_std'])
+        print(f'Data range standardized: min: {gmin} - max: {gmax}')
+
+        print(f'Corrupted files: {len(corrupted_files)}\n{corrupted_files}\n')
+    
+        del data_range
         gc.collect()
-
-    gmin = min(data_range['min_ori'])
-    gmax = max(data_range['max_ori'])
-    print(f'Data range original    : min: {gmin} - max: {gmax}')
-    
-    gmin = min(data_range['min_std'])
-    gmax = max(data_range['max_std'])
-    print(f'Data range standardized: min: {gmin} - max: {gmax}')
-
-    print(f'Corrupted files: {len(corrupted_files)}\n{corrupted_files}\n')
-    
-    del data_range
-    gc.collect()
     
 
     # ==========================================================================
     # Extract features from dev set
     # ==========================================================================
+    
+    if xtract_train == 1:
+        print('Extracting features from dev data')
+        data_range = defaultdict(list)
 
-    print('Extracting features from dev data')
-    data_range = defaultdict(list)
+        # split the training data into chuncks (due to huge memory size)
+        nsplit = n_dev_split
+        split_size = int(np.floor(len(dev_df)/nsplit))
+        split_start = [split_size*idx for idx in list(range(0,nsplit,1))]
+        split_end = [split_size*idx for idx in list(range(1,nsplit,1))]
+        split_end.append(len(dev_df))
+        split_idx = zip(split_start, split_end)
+        corrupted_files = []
+        for chunk, idx in enumerate(split_idx):
+            start,end = idx
+            print(f'Chunk {chunk+1}/{nsplit}\n')         
+            all_spec, data_range,corrupted = extract_feature_image(dev_df.iloc[start:end,:], spec_params, zscore_scaler, data_range, to_delete)
+            corrupted_files.extend(corrupted)
+            pickle.dump( all_spec, gzip.open( f'{outdir}dev_{args.feature}_{chunk}.pkl.gz',   'wb' ) )
 
-    # split the training data into chuncks (due to huge memory size)
-    nsplit = n_dev_split
-    split_size = int(np.floor(len(dev_df)/nsplit))
-    split_start = [split_size*idx for idx in list(range(0,nsplit,1))]
-    split_end = [split_size*idx for idx in list(range(1,nsplit,1))]
-    split_end.append(len(dev_df))
-    split_idx = zip(split_start, split_end)
-    corrupted_files = []
-    for chunk, idx in enumerate(split_idx):
-        start,end = idx
-        print(f'Chunk {chunk+1}/{nsplit}\n')         
-        all_spec, data_range,corrupted = extract_feature_image(dev_df.iloc[start:end,:], spec_params, zscore_scaler, data_range)
-        corrupted_files.extend(corrupted)
-        pickle.dump( all_spec, gzip.open( f'{outdir}dev_{args.feature}_{chunk}.pkl.gz',   'wb' ) )
+            del all_spec
+            gc.collect()
 
-        del all_spec
+        gmin = min(data_range['min_ori'])
+        gmax = max(data_range['max_ori'])
+        print(f'Data range original    : min: {gmin} - max: {gmax}')
+
+        gmin = min(data_range['min_std'])
+        gmax = max(data_range['max_std'])
+        print(f'Data range standardized: min: {gmin} - max: {gmax}')
+
+        print(f'Corrupted files: {len(corrupted_files)}\n{corrupted_files}\n')
+        del data_range
         gc.collect()
-
-    gmin = min(data_range['min_ori'])
-    gmax = max(data_range['max_ori'])
-    print(f'Data range original    : min: {gmin} - max: {gmax}')
-
-    gmin = min(data_range['min_std'])
-    gmax = max(data_range['max_std'])
-    print(f'Data range standardized: min: {gmin} - max: {gmax}')
-
-    print(f'Corrupted files: {len(corrupted_files)}\n{corrupted_files}\n')
-    del data_range
-    gc.collect()
 
 
     # ==========================================================================
     # Extract features from test set
     # ==========================================================================
 
-    print('Extracting features from test data')
-    data_range = defaultdict(list)
+    if xtract_test == 1:
+        print('Extracting features from test data')
+        data_range = defaultdict(list)
      
-    # split the training data into chuncks (due to huge memory size)
-    nsplit = n_test_split
-    split_size = int(np.floor(len(test_df)/nsplit))
-    split_start = [split_size*idx for idx in list(range(0,nsplit,1))]
-    split_end = [split_size*idx for idx in list(range(1,nsplit,1))]
-    split_end.append(len(test_df))
-    split_idx = zip(split_start, split_end)
+        # split the training data into chuncks (due to huge memory size)
+        nsplit = n_test_split
+        split_size = int(np.floor(len(test_df)/nsplit))
+        split_start = [split_size*idx for idx in list(range(0,nsplit,1))]
+        split_end = [split_size*idx for idx in list(range(1,nsplit,1))]
+        split_end.append(len(test_df))
+        split_idx = zip(split_start, split_end)
 
-    corrupted_files=[]
-    for chunk, idx in enumerate(split_idx):
-        start,end = idx
-        print(f'Chunk {chunk+1}/{nsplit}\n')
-        all_spec, data_range,corrupted = extract_feature_image(test_df.iloc[start:end,:], spec_params, zscore_scaler, data_range)
-        corrupted_files.extend(corrupted)
-        pickle.dump( all_spec, gzip.open( f'{outdir}test_{args.feature}_{chunk}.pkl.gz',   'wb' ) )
+        corrupted_files=[]
+        for chunk, idx in enumerate(split_idx):
+            start,end = idx
+            print(f'Chunk {chunk+1}/{nsplit}\n')
+            all_spec, data_range,corrupted = extract_feature_image(test_df.iloc[start:end,:], spec_params, zscore_scaler, data_range, to_delete)
+            corrupted_files.extend(corrupted)
+            pickle.dump( all_spec, gzip.open( f'{outdir}test_{args.feature}_{chunk}.pkl.gz',   'wb' ) )
          
-        del all_spec
-        gc.collect()
+            del all_spec
+            gc.collect()
       
-    gmin = min(data_range['min_ori'])
-    gmax = max(data_range['max_ori'])
-    print(f'Data range original    : min: {gmin} - max: {gmax}')
+        gmin = min(data_range['min_ori'])
+        gmax = max(data_range['max_ori'])
+        print(f'Data range original    : min: {gmin} - max: {gmax}')
      
-    gmin = min(data_range['min_std'])
-    gmax = max(data_range['max_std'])
-    print(f'Data range standardized: min: {gmin} - max: {gmax}')
+        gmin = min(data_range['min_std'])
+        gmax = max(data_range['max_std'])
+        print(f'Data range standardized: min: {gmin} - max: {gmax}')
 
-    print(f'Corrupted files: {len(corrupted_files)}\n{corrupted_files}\n')
+        print(f'Corrupted files: {len(corrupted_files)}\n{corrupted_files}\n')
     
-    del data_range
-    gc.collect()
+        del data_range
+        gc.collect()
 
     print(f'\n{args.feature} features extraction done!')
     
@@ -409,7 +427,12 @@ def parse_arguments(argv):
          help='number of dev set split')
     parser.add_argument('--testsplit', type=int, default=1,
          help='number of test set split')
-    
+    parser.add_argument('--xtrain', type=int, default=1,
+         help='set 1 to extract train\dev')
+    parser.add_argument('--xtest', type=int, default=1,
+         help='set 1 to extract test')
+    parser.add_argument('--delete', type=int, default=0,
+         help='set to 1 to delete wav files after conversion')    
     return parser.parse_args(argv)
 
 if __name__ == '__main__':

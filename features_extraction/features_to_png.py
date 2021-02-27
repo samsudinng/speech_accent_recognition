@@ -7,6 +7,7 @@ import math
 import gc
 import sys
 import argparse
+import os
 
 def segment_nd_features(data, label, segment_size):
     '''
@@ -91,7 +92,7 @@ def convert_to_image(allspec, data_labels, img_dir,segment_size=300):
 
         for idx, img in enumerate(segments):
             pil_img = Image.fromarray(np.squeeze(img,0))
-            pil_img.save(f'{img_dir}/{label}/{utt}_{idx}.png')
+            pil_img.save(f'{img_dir}{label}/{utt}_{idx}.png')
 
         data_labels.loc[utt,'num_segments'] = num_segments
 
@@ -101,12 +102,15 @@ def convert_to_image(allspec, data_labels, img_dir,segment_size=300):
 
 def main(args):
 
-    feature = args.feature
+    feature      = args.feature
     segment_size = args.segment
-
+    to_delete    = args.delete
+    xtract_train = args.xtrain
+    xtract_test  = args.xtest
+    
     #folder containing .pkl.gz spectrogram images
-    train_feature_dir = args.fpath
-    dev_feature_dir   = args.fpath
+    train_feature_dir  = args.fpath
+    dev_feature_dir    = args.fpath
     test_feature_dir   = args.fpath
     
     #utt2accent
@@ -142,64 +146,73 @@ def main(args):
     #   Format of .pkl.gz content: {utterance:log_spectrogram}
     #       - utterance: utterance name as in utt2accent, eg.AESRC2020-AMERICAN-ACCENT-G00473-G00473S1001
     #       - log_spectrogram: (F, T), standardized and quantized to uint8
-
-    for nf in range(n_train_feats_files):
-        filename = f'{train_feature_dir}train_{feature}_{nf}.pkl.gz'
-        print(f'Converting {filename} to .png ...')
-        with gzip.open(filename, 'rb') as f:
-            allspec = pickle.load(f)
+    if xtract_train == 1:
+        print("Converting train features to png")
+        for nf in range(n_train_feats_files):
+            filename = f'{train_feature_dir}train_{feature}_{nf}.pkl.gz'
+            print(f'Converting {filename} to .png ...')
+            with gzip.open(filename, 'rb') as f:
+                allspec = pickle.load(f)
   
-        train_labels = convert_to_image(allspec, train_labels, train_dir, segment_size=segment_size)        
+            train_labels = convert_to_image(allspec, train_labels, train_dir, segment_size=segment_size)        
 
-        del allspec
-        gc.collect()
+            del allspec
+            gc.collect()
+            if to_delete == 1:
+                os.remove(filename)
 
-    dropped  = len(train_labels) 
-    train_labels.dropna(inplace=True)
-    dropped -= len(train_labels)
-    print(f'Train set - #utt: {len(train_labels)} - {dropped} utterances dropped')
+        dropped  = len(train_labels) 
+        train_labels.dropna(inplace=True)
+        dropped -= len(train_labels)
+        assert train_labels.num_segments.isna().any().item() == False
+        train_labels.to_pickle(f'{train_dir}train_labels.pkl')
+        print(f'Train set - num. utt: {len(train_labels)} - {dropped} utterances dropped')
     
     #Read the dev features, segment and put in dev_img folder
-    for nf in range(n_dev_feats_files):
-        filename = f'{dev_feature_dir}dev_{feature}_{nf}.pkl.gz'
-        print(f'Converting {filename} to png ...')
-        with gzip.open(filename, 'rb') as f:
-            allspec = pickle.load(f)
-        dev_labels = convert_to_image(allspec, dev_labels, dev_dir,segment_size=segment_size) 
+    if xtract_train == 1:
+        print("Converting dev features to png")
+        for nf in range(n_dev_feats_files):
+            filename = f'{dev_feature_dir}dev_{feature}_{nf}.pkl.gz'
+            print(f'Converting {filename} to png ...')
+            with gzip.open(filename, 'rb') as f:
+                allspec = pickle.load(f)
+            dev_labels = convert_to_image(allspec, dev_labels, dev_dir,segment_size=segment_size) 
 
-        del allspec
-        gc.collect()
-
-    dropped  = len(dev_labels) 
-    dev_labels.dropna(inplace=True)
-    dropped -= len(dev_labels)
-    print(f'Dev   set - #utt: {len(dev_labels)} - {dropped} utterances dropped')
+            del allspec
+            gc.collect()
+            if to_delete == 1:
+                os.remove(filename)
+        
+        dropped  = len(dev_labels) 
+        dev_labels.dropna(inplace=True)
+        dropped -= len(dev_labels)
+        assert dev_labels.num_segments.isna().any().item() == False
+        dev_labels.to_pickle(f'{dev_dir}dev_labels.pkl')
+        print(f'Dev   set - num. utt: {len(dev_labels)} - {dropped} utterances dropped')
 
     #Read the test features, segment and put in test_img folder
-    for nf in range(n_test_feats_files):
-        filename = f'{test_feature_dir}test_logspec200_{nf}.pkl.gz'
-        print(f'Converting {filename} to png ...')
-        with gzip.open(filename, 'rb') as f:
-            allspec = pickle.load(f)
-        test_labels = convert_to_image(allspec, test_labels, test_dir,segment_size=segment_size) 
+    if xtract_test == 1:
+        print("Converting test features to png")
+        for nf in range(n_test_feats_files):
+            filename = f'{test_feature_dir}test_logspec200_{nf}.pkl.gz'
+            print(f'Converting {filename} to png ...')
+            with gzip.open(filename, 'rb') as f:
+                allspec = pickle.load(f)
+            test_labels = convert_to_image(allspec, test_labels, test_dir,segment_size=segment_size) 
 
-        del allspec
-        gc.collect()
+            del allspec
+            gc.collect()
+            if to_delete == 1:
+                os.remove(filename)
+                    
+        dropped  = len(test_labels) 
+        test_labels.dropna(inplace=True)
+        dropped -= len(test_labels)
+        assert test_labels.num_segments.isna().any().item() == False
+        test_labels.to_pickle(f'{test_dir}test_labels.pkl')
+        print(f'Test  set - num. utt: {len(test_labels)} - {dropped} utterances dropped')
 
-    dropped  = len(test_labels) 
-    test_labels.dropna(inplace=True)
-    dropped -= len(test_labels)
-    print(f'Test  set - #utt: {len(test_labels)} - {dropped} utterances dropped')
-
-    #make sure all files are processed properly
-    assert train_labels.num_segments.isna().any().item() == False
-    assert dev_labels.num_segments.isna().any().item() == False
-    assert test_labels.num_segments.isna().any().item() == False
     
-    #save the label dataframe
-    train_labels.to_pickle(f'{train_dir}train_labels.pkl')
-    dev_labels.to_pickle(f'{dev_dir}dev_labels.pkl')
-    test_labels.to_pickle(f'{test_dir}test_labels.pkl')
 
 
 def parse_arguments(argv):
@@ -227,6 +240,12 @@ def parse_arguments(argv):
          help='number of dev set split')
     parser.add_argument('--testsplit', type=int, default=1,
          help='number of test set split')
+    parser.add_argument('--xtrain', type=int, default=1,
+         help='set 1 to extract train\dev')
+    parser.add_argument('--xtest', type=int, default=1,
+         help='set 1 to extract test')
+    parser.add_argument('--delete', type=int, default=0,
+             help='set to 1 to delete features files after conversion')
     return parser.parse_args(argv)
 
 
