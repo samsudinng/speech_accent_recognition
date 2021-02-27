@@ -56,7 +56,8 @@ pip install -r requirements.txt
 2. Extract features
 
 ```
-source features_extraction/create_logspec_imgs.sh
+cd features_extraction
+source create_logspec_imgs.sh
 ```
 
 This script performs two tasks:
@@ -80,7 +81,7 @@ In  the above`create_logspec_imgs.sh` script, set the following environment path
 
 3. Training/Validation
 
-`python train.py -c path/to/config_filename.json --trndir path/to/trainset_images/ --devdir path/to/devset_images/ --logdir path/to/logfiles`
+`python train.py -c path/to/config_conf-filename.json --trndir path/to/trainset_images/ --devdir path/to/devset_images/ --logdir path/to/logfiles`
 
 To resume training from specific epoch (eg.epoch number 6):
 
@@ -90,11 +91,11 @@ The required arguments are:
 
 |Arguments|Remarks|Default|
 |:---|:---|:--- |
-|`--trndir`, `--devdir`|path to the trainset and devset images (`TRAINIMGPATH` and `DEVIMGPATH` in previous step)| `train_img`, `dev_img` set in .json config file|
-|`--logdir`|path to logfiles. In this directory, two subdirectories will be created: (1) `log/config_filename/timestamp/` containing tensorboard log files and metric printout (`info.log`); (2) `models/config_filename/timestamp/` containing checkpoints (`checkpoint-epoch<n>.pth`) and best model (`model_best.pth`) and a copy of the config file (`config.json`)| `saved/` set in .json config file|
+|`--trndir`, `--devdir`|path to the trainset and devset images (`TRAINIMGPATH` and `DEVIMGPATH` in previous step)| `features_extraction/train_img/`, `features_extraction/dev_img/` set in .json config file|
+|`--logdir`|path to logfiles. In this directory, two subdirectories will be created: (1) `log/conf-filename/timestamp/` containing tensorboard log files and metric printout (`info.log`); (2) `models/conf-filename/timestamp/` containing checkpoints (`checkpoint-epoch<n>.pth`) and best model (`model_best.pth`) and a copy of the config file (`config.json`)| `saved/` set in .json config file|
 
 ```diff
-- Config files to replicate various experiments are provided in the directory `config_files/` -
+- Config files to replicate various experiments are provided in the directory `config_files/experiment_id/` -
 ```
 
 By default, Tensorboard logging is enabled. Results can be monitored in Tensorboard with option `--logdir path/to/logfiles`, or read from the file `info.log`.
@@ -102,9 +103,9 @@ By default, Tensorboard logging is enabled. Results can be monitored in Tensorbo
 
 4. Test
 
-`python test.py -r path/to/model_best.pth`
+`python test.py -r path/to/model_best.pth ---tstdir path/to/testset_images/ `
 
-Results can be read from the file `info.log`
+By default, the .json config points to `features_extraction/test_img/` directory for test images. Results can be read from the file `info.log`
 
 
 
