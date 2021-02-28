@@ -12,8 +12,8 @@ FPATH="features/"
 
 ### paths to the output .png images
 ENABLE_FEATURE2PNG=true
-TRAINIMGPATH="train_img"
-DEVIMGPATH="dev_img"
+TRAINIMGPATH="train_img/"
+DEVIMGPATH="dev_img/"
 TESTIMGPATH="test_img/"
 
 
@@ -39,7 +39,7 @@ XTRACT_TRAIN=1
 XTRACT_TEST=1
 
 ## set to 1 to delete wav files after features extraction
-TO_DELETE_WAV=0
+TO_DELETE_WAV=1
 TO_DELETE_FEAT=0
 
 ###########################################
