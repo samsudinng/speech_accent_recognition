@@ -4,7 +4,7 @@ repository and format of the configuration file, refer to [PyTorch Template Proj
 
 ## USAGE
 
-0. Install `conda` environment/package manager
+#### 0. Install `conda` environment/package manager
 This project uses `conda` to manage environment replication. Download and install from [here](https://docs.conda.io/en/latest/). 
 
 #### 1. Setup virtual environment and install dependencies
